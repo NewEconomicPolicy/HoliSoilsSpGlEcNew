@@ -31,6 +31,7 @@ from prepare_ecosse_files_ss import update_progress, make_ecosse_file
 from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell
 from mngmnt_fns_and_class import ManagementSet, check_mask_location, get_hilda_land_uses
 from glbl_ecsse_low_level_fns_sv import fetch_coord_nearest_xy
+from wthr_generation_fns import create_wthr_averages
 
 WARN_STR = '*** Warning *** '
 ERROR_STR = '*** Error *** '
@@ -155,6 +156,9 @@ def _generate_ecosse_files(form, climgen, mask_defn, num_band):
             no_wthr += 1
             continue
 
+        hist_wthr_recs = create_wthr_averages(form.lgr, climgen, lat, wthr_gran_coord, 'historic', text_flag=True)
+        create_wthr_averages(form.lgr, climgen, lat, wthr_gran_coord, 'simulation', text_flag=False)
+
         yrs_pi = form.litter_defn.get_efiscen_nc_data(pft_key, lat, long, form.w_baseline.isChecked())
         if yrs_pi is None:
             no_yrs_pi += 1
@@ -165,7 +169,7 @@ def _generate_ecosse_files(form, climgen, mask_defn, num_band):
         # create limited data object
         # ==========================
         ltd_data = make_ltd_data_files.MakeLtdDataFiles(form, climgen, yrs_pi)
-        make_ecosse_file(form, climgen, ltd_data, site_rec, study, wthr_gran_coord)
+        make_ecosse_file(form, climgen, ltd_data, site_rec, study, hist_wthr_recs, wthr_gran_coord)
         completed += 1
         if completed >= max_cells:
             break

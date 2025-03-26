@@ -159,7 +159,7 @@ def _make_met_files(clim_dir, latitude, climgen, pettmp_grid_cell):
 
     return
 
-def make_ecosse_file(form, climgen, ltd_data, site_rec, study, wthr_gran_coord):
+def make_ecosse_file(form, climgen, ltd_data, site_rec, study, hist_wthr_recs, wthr_gran_coord):
     """
     generate sets of Ecosse files for each site
     where each site has one or more soils and each soil can have one or more dominant soils
@@ -191,18 +191,7 @@ def make_ecosse_file(form, climgen, ltd_data, site_rec, study, wthr_gran_coord):
             if not lexists(sim_dir):
                 makedirs(sim_dir)
 
-            # check to see if average weather file if already present
-            # =======================================================
-            hist_wthr_ave_fn = join(wthr_cell_dir, 'met2015_to_2100_ave.txt')
-            if isfile(hist_wthr_ave_fn):
-                with open(hist_wthr_ave_fn, 'r') as fobj:
-                    recs = fobj.read().replace('\n', '')
-            else:
-                # create lta averages file from existing met files
-                pass
-
-            hist_weather_recs = None
-            ltd_data.write(sim_dir, soil, latitude, hist_weather_recs, met_rel_path)
+            ltd_data.write(sim_dir, soil, latitude, hist_wthr_recs, met_rel_path)
 
             # write kml file if requested and signature file
             # ==============================================

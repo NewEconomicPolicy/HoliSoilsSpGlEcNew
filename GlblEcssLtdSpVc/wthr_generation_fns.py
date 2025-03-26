@@ -13,7 +13,8 @@ __version__ = '0.0.1'
 __author__ = 's03mm5'
 
 from time import time
-from os.path import join, normpath, isdir, split
+import csv
+from os.path import join, normpath, isdir, split, isfile
 from os import listdir, walk, makedirs
 from pandas import Series, read_excel, DataFrame
 from PyQt5.QtWidgets import QApplication
@@ -28,7 +29,7 @@ from weather_datasets import write_csv_wthr_file
 from thornthwaite import thornthwaite
 
 ERROR_STR = '*** Error *** '
-WARNING_STR = '*** Warning *** '
+WARN_STR = '*** Warning *** '
 QUICK_FLAG = False       # forces break from loops after max cells reached in first GCM and SSP
 
 GRANULARITY = 120
@@ -60,7 +61,7 @@ def make_wthr_coords_lookup(form):
         break
 
     if num_sims == 0:
-        print(WARNING_STR + 'no sub-directories under path ' + wthr_out_dir)
+        print(WARN_STR + 'no sub-directories under path ' + wthr_out_dir)
         QApplication.processEvents()
         return
 
@@ -69,7 +70,7 @@ def make_wthr_coords_lookup(form):
     recs = []
     for gran_coord in subdirs_raw:
         if gran_coord.find('_') == -1:
-            print(WARNING_STR + 'non compliant directory found in weather directory ' + join(wthr_out_dir, gran_coord))
+            print(WARN_STR + 'non compliant directory found in weather directory ' + join(wthr_out_dir, gran_coord))
             QApplication.processEvents()
         else:
             gran_lat, gran_lon = gran_coord.split('_')
@@ -136,6 +137,7 @@ def generate_all_weather(form):
     print('')    
     last_time = time()
     num_band = -999
+    write_csv_wthr_flag = False
 
     print('Getting historic weather data from weather set: ' + hist_wthr_set['ds_precip'])
     QApplication.processEvents()
@@ -173,7 +175,8 @@ def generate_all_weather(form):
         if gran_coord in pettmp_fut['precipitation']:
             lat, lon = pettmp_hist['lat_lons'][gran_coord]
             clim_dir = make_wthr_files(site_obj, lat, gran_coord, climgen, pettmp_hist, pettmp_all)
-            write_csv_wthr_file(form.lgr, study, this_gcm, scnr, lat, lon, sim_start_year, sim_end_year,
+            if write_csv_wthr_flag:
+                write_csv_wthr_file(form.lgr, study, this_gcm, scnr, lat, lon, sim_start_year, sim_end_year,
                         pettmp_fut['precipitation'][gran_coord], pettmp_fut['temperature'][gran_coord], clim_dir)
             nwrttn += 1
             if nwrttn >= max_cells:
@@ -253,12 +256,12 @@ def make_wthr_files(site, lat, gran_coord, climgen, pettmp_hist, pettmp_all):
         return
 
     if gran_coord not in pettmp_hist['precipitation']:
-        print(WARNING_STR + 'granular coordinate {} with lat: {}\tnot in historic weather'.format(gran_coord, lat))
+        print(WARN_STR + 'granular coordinate {} with lat: {}\tnot in historic weather'.format(gran_coord, lat))
         QApplication.processEvents()
         return
 
     if gran_coord not in pettmp_all['precipitation']:
-        print(WARNING_STR + 'granular coordinate {} with lat: {}\tnot in simulation weather'.format(gran_coord, lat))
+        print(WARN_STR + 'granular coordinate {} with lat: {}\tnot in simulation weather'.format(gran_coord, lat))
         QApplication.processEvents()
         return
 
@@ -267,10 +270,11 @@ def make_wthr_files(site, lat, gran_coord, climgen, pettmp_hist, pettmp_all):
 
     # calculate historic average weather
     # ==================================
+    '''
     pettmp_hist_site = {'precip': pettmp_hist['precipitation'][gran_coord],
                         'tas': pettmp_hist['temperature'][gran_coord]}
     hist_lta_precip, hist_lta_tmean, hist_weather_recs = fetch_long_term_ave_wthr_recs(climgen, pettmp_hist_site)
-
+    '''
     # write a single set of met files for all simulations for this grid cell
     # ======================================================================
     pettmp_all_site = {'precip': pettmp_all['precipitation'][gran_coord], 'tas': pettmp_all['temperature'][gran_coord]}
@@ -281,11 +285,11 @@ def make_wthr_files(site, lat, gran_coord, climgen, pettmp_hist, pettmp_all):
 
     # create additional weather related files from already existing met files
     # =======================================================================
-
+    '''
     irc = climgen.create_FutureAverages(clim_dir, lat, gran_coord, site, hist_lta_precip, hist_lta_tmean)
     if irc == 0:
         lta_ave_fn = _make_lta_file(site, clim_dir)
-
+    '''
     return clim_dir
 
 def fetch_hist_lta_from_lat_lon(sims_dir, climgen, lat, lon):
@@ -397,7 +401,7 @@ def write_avemet_files(form):
                         make_avemet_file(drctry, lta_precip, lta_pet, lta_tmean)
                         nwrote += 1
                 else:
-                    print(WARNING_STR + LTA_RECS_FN + ' file should be present in ' + drctry)
+                    print(WARN_STR + LTA_RECS_FN + ' file should be present in ' + drctry)
 
             if nwrote >= max_cells:
                 print('\nFinished checking having written {} AVEMET.DAT files'.format(nwrote))
@@ -454,3 +458,125 @@ class MakeSiteObj(object,):
 
         self.wthr_prj_dir = climgen.wthr_out_dir
         self.months = climgen.months
+
+# ==========================
+def create_wthr_averages(lggr, climgen, lat_inp, gran_coord, period, text_flag):
+        """
+        use prexisting metyyyys.txt files to generate a text file of average weather which will subsequently
+        be included in the input.txt file
+        also create a climate file which is the average of the year range
+        """
+        func_name = ' create_lta_averages'
+        full_func_name = __prog__ + func_name
+
+        clim_dir = climgen.wthr_out_dir
+        months = climgen.months
+        output_recs = None
+
+        if period == 'historic':
+            yr_strt = climgen.hist_start_year
+            yr_end = climgen.hist_end_year
+        else:
+            yr_strt = climgen.sim_start_year
+            yr_end = climgen.sim_end_year
+
+        ave_text_fn = 'met{}_to_{}_ave.txt'.format(yr_strt, yr_end)
+        ave_met_fn = 'met' + str(yr_strt) + '_' + str(yr_end) + 'a.txt'
+
+        num_period_yrs = yr_end - yr_strt + 1
+
+        # skip if already exists
+        ave_long_text_fn = join(clim_dir, gran_coord, ave_text_fn)
+        ave_long_met_fn = join(clim_dir, gran_coord, ave_met_fn)
+        if isfile(ave_long_met_fn) and isfile(ave_long_text_fn):
+            mess = 'Files:\n\t' + ave_long_met_fn + ' and ' + ave_long_text_fn + '\n\talready exist - will overwrite'
+            lggr.info(WARN_STR + mess)
+
+        # read precipitation and temperature
+        sim_precip = {}
+        sim_tmean = {}
+        for month in months:
+            sim_precip[month] = 0.0
+            sim_tmean[month] = 0.0
+
+        for year in range(yr_strt, yr_end + 1):
+            fname = 'met{0}s.txt'.format(year)
+            met_fpath = join(clim_dir, gran_coord, fname)
+
+            if not isfile(met_fpath):
+                print('File ' + met_fpath + ' does not exist - will abandon average weather creation')
+                QApplication.processEvents()
+                return -1
+
+            with open(met_fpath, 'r', newline='') as fpmet:
+                lines = fpmet.readlines()
+
+            for line, month in zip(lines, months):
+                tlst = line.split('\t')
+                sim_precip[month] += float(tlst[1])
+                sim_tmean[month] += float(tlst[3].rstrip('\r\n'))
+
+        # write stanza for input.txt file consisting of long term average climate
+        # =======================================================================
+        if text_flag:
+            output_recs = []
+            for month in months:
+                ave_precip = sim_precip[month]/num_period_yrs
+                output_recs.append(_input_txt_line_layout('{}'.format(round(ave_precip, 1)),
+                                                    '{} long term average monthly precipitation [mm]'.format(month)))
+
+            for month in months:
+                ave_tmean = sim_tmean[month]/num_period_yrs
+                output_recs.append(_input_txt_line_layout('{}'.format(round(ave_tmean, 2)),
+                                                    '{} long term average monthly temperature [degC]'.format(month)))
+
+            # write text file of average simulated weather which will subsequently be included in the input.txt file
+            # ======================================================================================================
+            try:
+                fhand = open(ave_long_text_fn, 'w')
+            except IOError:
+                raise IOError(ERROR_STR + 'Unable to open file: ' + ave_text_fn)
+            else:
+                fhand.writelines(output_recs)
+                fhand.close()
+
+            lggr.info('Successfully wrote average weather file {} in function {}'.format(ave_text_fn, func_name))
+
+        # write long term average climate file
+        # ====================================
+        ave_precip = [round(sim_precip[month]/num_period_yrs, 1) for month in months]
+        ave_tmean = [round(sim_tmean[month]/num_period_yrs, 1) for month in months]
+
+        # pet
+        if max(ave_tmean) > 0.0:
+            pet = thornthwaite(ave_tmean, lat_inp, year)
+        else:
+            pet = [0.0]*12
+            mess = WARN_STR + 'monthly average temperatures are below zero in ' + full_func_name
+            mess += ' for latitude: {}\tgranular coord: {}'.format(lat_inp, gran_coord)
+            print(mess)
+
+        pot_evapotrans = [round(p, 1) for p in pet]
+
+        # write file
+        output = []
+        for tstep, mean_temp in enumerate(ave_tmean):
+            output.append([tstep+1, ave_precip[tstep], pot_evapotrans[tstep], mean_temp])
+
+        with open(ave_long_met_fn, 'w', newline='') as fpout:
+            writer = csv.writer(fpout, delimiter='\t')
+            writer.writerows(output)
+            fpout.close()
+
+        lggr.info('Successfully wrote average weather file {} in function {}'.format(ave_met_fn, func_name))
+
+        return output_recs
+
+def _input_txt_line_layout(data, comment):
+    """
+    C
+    """
+    set_spacer_len = 12
+    spacer_len = max(set_spacer_len - len(data), 2)
+    spacer = ' ' * spacer_len
+    return '{}{}# {}\n'.format(data, spacer, comment)

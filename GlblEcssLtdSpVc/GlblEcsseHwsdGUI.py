@@ -28,6 +28,7 @@ from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell, grid_resolutions, glbl
 from glbl_ecsse_high_level_sp import generate_banded_sims
 from generate_soil_vars_grid import generate_soil_outputs
 from generate_soil_vars_nc import make_soil_nc_outputs
+from write_soil_vars_grid import generate_all_soil_metrics
 
 from weather_datasets import change_weather_resource
 from initialise_funcs import read_config_file
@@ -267,6 +268,7 @@ class Form(QWidget):
         irow += 1
         irow = glblecss_limit_sims(self, grid, irow)
 
+        # ================= row 3 ============================
         irow += 1
         icol = 0
         w_wthr_only = QPushButton('Create weather')
@@ -320,6 +322,17 @@ class Form(QWidget):
         w_clear.setFixedWidth(STD_BTN_SIZE_120)
         w_clear.clicked.connect(self.clearReporting)
         grid.addWidget(w_clear, irow, icol)
+
+        # ================= row 4 ============================
+        irow += 1
+        icol = 2
+        w_soil_all = QPushButton("Make soil CSV")
+        helpText = 'Generate CSV data of soil carbon (Dominant) for all metrics'
+        w_soil_all.setToolTip(helpText)
+        w_soil_all.setFixedWidth(STD_BTN_SIZE_120)
+        grid.addWidget(w_soil_all, irow, icol)
+        w_soil_all.clicked.connect(lambda: self.genSoilOutptsClicked(True))
+        self.w_soil_all = w_soil_all
 
         # LH vertical box consists of png image
         # =====================================
@@ -448,11 +461,14 @@ class Form(QWidget):
             ret_code = w_mess_box.exec()
         return
 
-    def genSoilOutptsClicked(self):
+    def genSoilOutptsClicked(self, all_metrics_flag=False):
         """
 
         """
-        generate_soil_outputs(self)
+        if all_metrics_flag:
+            generate_all_soil_metrics(self)
+        else:
+            generate_soil_outputs(self)
 
     def genSoilNcClicked(self):
         """

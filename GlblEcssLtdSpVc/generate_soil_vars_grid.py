@@ -7,7 +7,7 @@
 # Licence:     <your licence>
 # Description:
 #   comprises two functions:
-#       def _write_to_soil_files(form, climgen,  mask_defn, num_band)
+#       def _write_to_soil_file(form, climgen,  mask_defn, num_band)
 #       def generate_banded_sims(form)
 #-------------------------------------------------------------------------------
 #

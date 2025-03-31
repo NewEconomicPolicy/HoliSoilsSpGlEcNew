@@ -16,7 +16,8 @@ __author__ = 's03mm5'
 
 import time
 import csv
-from os.path import join, split, isdir
+from pandas import read_csv
+from os.path import join, split, isdir, isfile
 from os import mkdir
 from PyQt5.QtWidgets import QApplication
 
@@ -30,7 +31,24 @@ from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell
 SOIL_HDRS = list(['UID', 'HWSD_Y', 'HWSD_X', 'Latitude', 'Longitude', 'MU_GLOBAL', 'SHARE',
                   'T_OC', 'T_BULK_DENSITY', 'T_PH_H2O', 'T_SAND', 'T_SILT', 'T_CLAY',
                   'S_OC', 'S_BULK_DENSITY', 'S_PH_H2O', 'S_SAND', 'S_SILT', 'S_CLAY'])
+SOIL_DIR = 'soil_metrics'
+
 WARN_STR = '*** Warning *** '
+
+def fetch_soil_metrics(form):
+    """
+    Create doil data frame
+    """
+    soil_dir = join(split(form.sims_dir)[0], SOIL_DIR)
+    fname = join(soil_dir, 'HWSD_recs' + '.csv')
+    
+    if isfile(fname):
+        soil_df = read_csv(fname, sep=',')
+    else:
+        print(WARN_STR + 'soil CSV file does not exist, cannot proceed')
+        return False
+
+    return True
 
 class SoilCsvOutputs(object):
     """
@@ -40,7 +58,7 @@ class SoilCsvOutputs(object):
 
         self.lgr = form.lgr
         self.hdrs = SOIL_HDRS
-        soil_dir = join(split(form.sims_dir)[0], 'soil_metrics')
+        soil_dir = join(split(form.sims_dir)[0], SOIL_DIR)
         if not isdir(soil_dir):
             mkdir(soil_dir)
 

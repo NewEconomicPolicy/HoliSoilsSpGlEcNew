@@ -29,6 +29,8 @@ from hwsd_mu_globals_fns import gen_grid_cells_for_band
 from prepare_ecosse_files import update_progress
 from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell
 
+SOIL_DIR = 'soil_metrics'
+
 class SoilCsvOutputs(object):
     """
     Class to write CSV files of soil data
@@ -38,7 +40,7 @@ class SoilCsvOutputs(object):
         self.lgr = form.lgr
         self.hdrs = ['latitude', 'longitude', 'mu_global']
         self.metrics = list(['soil_c', 'bulk_dens', 'ph'])
-        soil_dir = join(split(form.sims_dir)[0], 'soil_metrics')
+        soil_dir = join(split(form.sims_dir)[0], SOIL_DIR)
         if not isdir(soil_dir):
             mkdir(soil_dir)
 

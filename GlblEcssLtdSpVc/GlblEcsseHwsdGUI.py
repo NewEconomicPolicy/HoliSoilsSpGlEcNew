@@ -24,11 +24,12 @@ from PyQt5.QtWidgets import (QLabel, QWidget, QApplication, QHBoxLayout, QVBoxLa
 
 from common_componentsGUI import (exit_clicked, commonSection, changeConfigFile, studyTextChanged, save_clicked)
 from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell, grid_resolutions, glblecss_limit_sims
+from write_soil_vars_grid import fetch_soil_metrics
 
 from glbl_ecsse_high_level_sp import generate_banded_sims
 from generate_soil_vars_grid import generate_soil_outputs
 from generate_soil_vars_nc import make_soil_nc_outputs
-from write_soil_vars_grid import generate_all_soil_metrics
+from write_soil_vars_grid import generate_all_soil_metrics, fetch_soil_metrics
 
 from weather_datasets import change_weather_resource
 from initialise_funcs import read_config_file
@@ -334,6 +335,15 @@ class Form(QWidget):
         w_soil_all.clicked.connect(lambda: self.genSoilOutptsClicked(True))
         self.w_soil_all = w_soil_all
 
+        icol += 2
+        w_check_soil = QPushButton("Check soil CSV")
+        helpText = 'Generate CSV data of soil carbon (Dominant) for all metrics'
+        w_check_soil.setToolTip(helpText)
+        w_check_soil.setFixedWidth(STD_BTN_SIZE_120)
+        grid.addWidget(w_check_soil, irow, icol)
+        w_check_soil.clicked.connect(self.checkSoilCsv)
+        self.w_check_soil = w_check_soil
+
         # LH vertical box consists of png image
         # =====================================
         lh_vbox = QVBoxLayout()
@@ -389,6 +399,13 @@ class Form(QWidget):
             self.w_wthr_only.setEnabled(True)
 
         self.combo10w.currentIndexChanged[str].connect(self.weatherResourceChanged)
+
+    def checkSoilCsv(self):
+        """
+
+        """
+        fetch_soil_metrics(self)
+        return
 
     def makeWthrLookupClicked(self):
         """

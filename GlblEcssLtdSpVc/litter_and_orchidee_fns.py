@@ -79,7 +79,12 @@ def check_efiscen_dset(nc_fname):
     C
     """
     nc_fname = normpath(nc_fname)
-    nc_dset = Dataset(nc_fname)
+    try:
+        nc_dset = Dataset(nc_fname)
+    except PermissionError as err:
+        err_mess = 'Unable to open Efiscen dataset. {}'.format(err)
+        print(err_mess)
+        return False
 
     # check for EFISCEN dataset
     # =========================

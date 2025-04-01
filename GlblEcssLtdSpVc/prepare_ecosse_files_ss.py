@@ -171,7 +171,7 @@ def make_ecosse_file(form, climgen, ltd_data, site_rec, study, hist_wthr_recs, w
     gran_lat, gran_lon, latitude, longitude, area, mu_globals_props = site_rec
     sims_dir = form.sims_dir
     fut_clim_scen = climgen.fut_clim_scen
-    met_rel_path = join('..', '..', '..', WTHR, fut_clim_scen, wthr_gran_coord)
+    met_rel_path = join('..', '..', '..', WTHR, fut_clim_scen, wthr_gran_coord, '')     # path must terminate with \\
     wthr_dir = join(split(sims_dir)[0], WTHR)
     wthr_cell_dir = join(wthr_dir, fut_clim_scen, wthr_gran_coord)
 

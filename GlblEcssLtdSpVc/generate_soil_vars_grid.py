@@ -180,6 +180,7 @@ def generate_soil_outputs(form):
 
     if form.hwsd_mu_globals is None:
         print('Undetermined HWSD aoi - please select a valid HSWD csv file')
+        QApplication.processEvents()
         return
 
     if form.w_use_dom_soil.isChecked():
@@ -212,7 +213,7 @@ def generate_soil_outputs(form):
     # ============================ for each PFT end =====================================
     # print('Study bounding box and HWSD CSV file overlap')
     #        ============================================
-    start_at_band = form.start_at_band
+    start_at_band = form.start_at_band   # from setup file, generally zero
     print('Starting at band {}'.format(start_at_band))
 
     # extract required values from the HWSD database and simplify if requested

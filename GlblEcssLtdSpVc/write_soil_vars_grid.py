@@ -64,6 +64,7 @@ class SoilCsvOutputs(object):
 
         self.soil_dir = soil_dir
         self.study = form.w_study.text()
+        self.req_resol_upscale = form.req_resol_upscale
 
         self.output_fobj = None
         self.writer = None
@@ -72,7 +73,8 @@ class SoilCsvOutputs(object):
         """
         Create empty results file
         """
-        fname = join(self.soil_dir, 'HWSD_recs' + '.csv')
+        req_resol_str =  '{:0=2d}'.format(self.req_resol_upscale)
+        fname = join(self.soil_dir, 'HWSD_recs_' + req_resol_str + '.csv')
         try:
             self.output_fobj = open(fname, 'w', newline='')
         except (OSError, IOError) as err:
@@ -220,7 +222,7 @@ def generate_all_soil_metrics(form, max_cells=100000000):
     # ============================ for each PFT end =====================================
     # print('Study bounding box and HWSD CSV file overlap')
     #        ============================================
-    start_at_band = form.start_at_band
+    start_at_band = form.start_at_band   # from setup file, generally zero
     print('Starting at band {}'.format(start_at_band))
 
     # extract required values from the HWSD database and simplify if requested

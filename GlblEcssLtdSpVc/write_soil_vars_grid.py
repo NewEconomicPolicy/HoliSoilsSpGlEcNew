@@ -156,7 +156,7 @@ def _write_to_soil_file(form, soil_csv, num_band):
     # =======================================================================
     for site_rec in aoi_res:
         gran_lat, gran_lon, lat, long, area, mu_globals_props = site_rec
-        gran_coord =str(gran_lat) + '_' + str(gran_lon)
+        gran_coord = '{:0=5d}_{:0=5d}'.format(int(gran_lat), int(gran_lon))
 
         for pair in mu_globals_props.items():
             mu_global, proportion = pair

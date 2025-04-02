@@ -156,7 +156,7 @@ def _generate_ecosse_files(form, climgen, mask_defn, num_band):
             no_wthr += 1
             continue
 
-        hist_wthr_recs = create_wthr_averages(form.lgr, climgen, lat, wthr_gran_coord, 'historic', text_flag=True)
+        lta_wthr_recs = create_wthr_averages(form.lgr, climgen, lat, wthr_gran_coord, 'historic', text_flag=True)
         create_wthr_averages(form.lgr, climgen, lat, wthr_gran_coord, 'simulation', text_flag=False)
 
         yrs_pi = form.litter_defn.get_efiscen_nc_data(pft_key, lat, long, form.w_baseline.isChecked())
@@ -169,7 +169,7 @@ def _generate_ecosse_files(form, climgen, mask_defn, num_band):
         # create limited data object
         # ==========================
         ltd_data = make_ltd_data_files.MakeLtdDataFiles(form, climgen, yrs_pi)
-        make_ecosse_file(form, climgen, ltd_data, site_rec, study, hist_wthr_recs, wthr_gran_coord)
+        make_ecosse_file(form, climgen, ltd_data, site_rec, study, lta_wthr_recs, wthr_gran_coord)
         completed += 1
         if completed >= max_cells:
             break

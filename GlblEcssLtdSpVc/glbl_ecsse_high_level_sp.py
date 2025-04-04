@@ -21,8 +21,6 @@ from PyQt5.QtWidgets import QApplication
 
 import make_ltd_data_files
 from getClimGenNC_ltd import ClimGenNC
-
-from getClimGenFns import associate_climate
 import hwsd_bil
 
 from hwsd_mu_globals_fns import gen_grid_cells_for_band
@@ -30,7 +28,7 @@ from litter_and_orchidee_fns import resize_yrs_pi
 from prepare_ecosse_files_ss import update_progress, make_ecosse_file
 from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell
 from mngmnt_fns_and_class import ManagementSet, check_mask_location, get_hilda_land_uses
-from glbl_ecsse_low_level_fns_sv import fetch_coord_nearest_xy
+from glbl_ecsse_low_level_fns_sv import fetch_coord_nearest_xy, fetch_soil_metrics
 from wthr_generation_fns import create_wthr_averages
 
 WARN_STR = '*** Warning *** '
@@ -193,6 +191,8 @@ def generate_banded_sims(form):
     """
     called from GUI
     """
+    fetch_soil_metrics(form)
+
     if form.hwsd_mu_globals is None:
         print('Undetermined HWSD aoi - please select a valid HSWD csv file')
         return

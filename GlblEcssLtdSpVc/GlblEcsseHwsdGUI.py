@@ -24,12 +24,12 @@ from PyQt5.QtWidgets import (QLabel, QWidget, QApplication, QHBoxLayout, QVBoxLa
 
 from common_componentsGUI import (exit_clicked, commonSection, changeConfigFile, studyTextChanged, save_clicked)
 from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell, grid_resolutions, glblecss_limit_sims
-from write_soil_vars_grid import fetch_soil_metrics
 
 from glbl_ecsse_high_level_sp import generate_banded_sims
 from generate_soil_vars_grid import generate_soil_outputs
 from generate_soil_vars_nc import make_soil_nc_outputs
-from write_soil_vars_grid import generate_all_soil_metrics, fetch_soil_metrics
+from write_soil_vars_grid import generate_all_soil_metrics
+from glbl_ecsse_low_level_fns_sv import fetch_soil_metrics
 
 from weather_datasets import change_weather_resource
 from initialise_funcs import read_config_file

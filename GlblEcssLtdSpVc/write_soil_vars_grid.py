@@ -16,7 +16,6 @@ __author__ = 's03mm5'
 
 import time
 import csv
-from pandas import read_csv
 from os.path import join, split, isdir, isfile
 from os import mkdir
 from PyQt5.QtWidgets import QApplication
@@ -34,21 +33,6 @@ SOIL_HDRS = list(['UID', 'HWSD_Y', 'HWSD_X', 'Latitude', 'Longitude', 'MU_GLOBAL
 SOIL_DIR = 'soil_metrics'
 
 WARN_STR = '*** Warning *** '
-
-def fetch_soil_metrics(form):
-    """
-    Create doil data frame
-    """
-    soil_dir = join(split(form.sims_dir)[0], SOIL_DIR)
-    fname = join(soil_dir, 'HWSD_recs' + '.csv')
-    
-    if isfile(fname):
-        soil_df = read_csv(fname, sep=',')
-    else:
-        print(WARN_STR + 'soil CSV file does not exist, cannot proceed')
-        return False
-
-    return True
 
 class SoilCsvOutputs(object):
     """

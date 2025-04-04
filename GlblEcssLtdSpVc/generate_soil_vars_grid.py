@@ -18,7 +18,7 @@ __author__ = 's03mm5'
 
 import time
 import csv
-from os.path import join, split, isdir
+from os.path import join, split, isdir, isfile
 from os import mkdir
 from PyQt5.QtWidgets import QApplication
 
@@ -30,6 +30,7 @@ from prepare_ecosse_files import update_progress
 from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell
 
 SOIL_DIR = 'soil_metrics'
+WARN_STR = '*** Warning *** '
 
 class SoilCsvOutputs(object):
     """

@@ -13,8 +13,9 @@ __prog__ = 'glbl_ecsse_low_level_fns.py'
 __version__ = '0.0.1'
 __author__ = 's03mm5'
 
-from os.path import exists, join, split
+from os.path import exists, join, split, isfile
 from json import load as json_load
+from pandas import read_csv
 from sys import stdout
 from time import time
 from netCDF4 import Dataset
@@ -23,9 +24,12 @@ from glob import glob
 from numpy.ma.core import MaskError
 from locale import LC_ALL, setlocale, format_string
 import numpy
+from PyQt5.QtWidgets import QApplication
 
 GRANULARITY = 120
-WARNING_STR = '*** Warning *** '
+SOIL_DIR = 'soil_metrics'
+
+WARN_STR = '*** Warning *** '
 ERROR_STR = '*** Error *** '
 
 def fetch_coord_nearest_xy(coords_lookup, y_point, x_point):
@@ -162,7 +166,7 @@ def check_cultiv_json_fname(form):
         cultiv_pattern = cultiv_content[cultiv_key]
         mess = 'Cultivation input file is valid'
     else:
-        mess = WARNING_STR + 'Key ' + cultiv_key + ' must be present in Cultivation file'
+        mess = WARN_STR + 'Key ' + cultiv_key + ' must be present in Cultivation file'
         cultiv_pattern = None
 
     form.cultiv_pattern = cultiv_pattern
@@ -295,7 +299,7 @@ def _fetch_glbl_amnt(lggr, n_inpts_obj, glbl_n_flag, lat, lon):
     try:
         cntry_indx = int(n_inpts_obj.cntries_defn.nc_dset['countries'][lat_indx, lon_indx])
     except MaskError as err:
-        mess = WARNING_STR + 'lat/indx: {} {} long/indx: {} {} {}'.format(lat, lat_indx, lon, lon_indx, str(err))
+        mess = WARN_STR + 'lat/indx: {} {} long/indx: {} {} {}'.format(lat, lat_indx, lon, lon_indx, str(err))
         lggr.info(mess)
 
         # locate country using bounding boxes
@@ -305,7 +309,7 @@ def _fetch_glbl_amnt(lggr, n_inpts_obj, glbl_n_flag, lat, lon):
         try:
             cntry = n_inpts_obj.cntry_dict[cntry_indx]
         except KeyError as err:
-            print('\n' + WARNING_STR + 'No country found for lat/long: {} {} {}'.format(lat, lon, str(err)))
+            print('\n' + WARN_STR + 'No country found for lat/long: {} {} {}'.format(lat, lon, str(err)))
             return glbl_amt
 
     glbl_n_inpts = n_inpts_obj.glbl_n_inpts
@@ -395,6 +399,27 @@ def generate_cells(form):
     nc_dset.close()
 
     return
+
+def fetch_soil_metrics(form):
+    """
+    verify and load soil CSV data
+    """
+    soil_dir = join(split(form.sims_dir)[0], SOIL_DIR)
+    soil_mtrcs_nm =  'HWSD_recs' + '_' + '{:0=2d}'.format(form.req_resol_upscale)
+    fname = join(soil_dir, soil_mtrcs_nm + '.csv')
+
+    soil_df_flag = False
+    if isfile(fname):
+        soil_df = read_csv(fname, sep=',')
+        print('soil CSV file ', fname + ' has ' + str(soil_df.shape[0] - 1) + ' soil records')
+        form.soil_df = soil_df
+        soil_df_flag = True
+    else:
+        print(WARN_STR + 'soil CSV file ' + fname  + ' does not exist, cannot proceed')
+
+    QApplication.processEvents()
+
+    return soil_df_flag
 
 def update_progress(last_time, ncompleted, nskipped, ntotal_grow, ngrowing, nno_grow, hwsd = None):
     """

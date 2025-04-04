@@ -15,7 +15,6 @@ __version__ = '0.0.0'
 from os.path import normpath, exists
 from numpy import ma, zeros
 from netCDF4 import Dataset
-from PyQt5.QtWidgets import QApplication
 
 ERROR_STR = '*** Error *** '
 WARN_STR = '*** Warning *** '
@@ -35,15 +34,15 @@ def fetch_nc_litter(form, fname):
             mess += '  does not exist'
 
         print(mess)
-        return None
+        return False
 
-    if check_efiscen_dset(fname):
+    if _check_efiscen_dset(fname):
         form.w_create_files.setEnabled(True)
     else:
         form.w_create_files.setEnabled(False)
         form.w_nc_extnt.setText('')
         form.w_ave_val.setText('')
-        return None
+        return False
 
     carbon_var = form.combo08.currentText()
     lttr_defn = EfiscenSet(fname)
@@ -72,9 +71,9 @@ def fetch_nc_litter(form, fname):
 
     form.w_ave_val.setText(mess)
 
-    return None
+    return True
 
-def check_efiscen_dset(nc_fname):
+def _check_efiscen_dset(nc_fname):
     """
     C
     """

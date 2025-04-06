@@ -16,6 +16,7 @@ __author__ = 's03mm5'
 from os.path import exists, join, split, isfile
 from json import load as json_load
 from pandas import read_csv
+from pandas.errors import EmptyDataError
 from sys import stdout
 from time import time
 from netCDF4 import Dataset
@@ -408,18 +409,21 @@ def fetch_soil_metrics(form):
     soil_mtrcs_nm =  'HWSD_recs' + '_' + '{:0=2d}'.format(form.req_resol_upscale)
     fname = join(soil_dir, soil_mtrcs_nm + '.csv')
 
-    soil_df_flag = False
+    soil_df = None
     if isfile(fname):
-        soil_df = read_csv(fname, sep=',')
-        print('soil CSV file ', fname + ' has ' + str(soil_df.shape[0] - 1) + ' soil records')
-        form.soil_df = soil_df
-        soil_df_flag = True
+        try:
+            soil_df = read_csv(fname, sep=',', index_col=0)
+        except EmptyDataError as err:
+            print(WARN_STR + 'soil CSV file ', fname + ' has no soil records')
+            soil_df = None
+        else:
+            print('soil CSV file ', fname + ' has ' + str(soil_df.shape[0] - 1) + ' soil records')
     else:
         print(WARN_STR + 'soil CSV file ' + fname  + ' does not exist, cannot proceed')
 
     QApplication.processEvents()
 
-    return soil_df_flag
+    return soil_df
 
 def update_progress(last_time, ncompleted, nskipped, ntotal_grow, ngrowing, nno_grow, hwsd = None):
     """

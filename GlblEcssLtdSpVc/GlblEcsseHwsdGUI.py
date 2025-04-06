@@ -26,6 +26,7 @@ from common_componentsGUI import (exit_clicked, commonSection, changeConfigFile,
 from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell, grid_resolutions, glblecss_limit_sims
 
 from glbl_ecsse_high_level_sp import generate_banded_sims
+from glec_new_high_level_sp import generate_sims
 from generate_soil_vars_grid import generate_soil_outputs
 from generate_soil_vars_nc import make_soil_nc_outputs
 from write_soil_vars_grid import generate_all_soil_metrics
@@ -326,7 +327,17 @@ class Form(QWidget):
 
         # ================= row 4 ============================
         irow += 1
-        icol = 2
+        icol = 0
+        w_new_sims = QPushButton("Create new sims")
+        helpText = 'Generate ECOSSE simulation file sets corresponding to ordered HWSD global mapping unit set in CSV file'
+        w_new_sims.setToolTip(helpText)
+        # w_new_sims.setEnabled(False)
+        w_new_sims.setFixedWidth(STD_BTN_SIZE_120)
+        grid.addWidget(w_new_sims, irow, 0, )
+        w_new_sims.clicked.connect(self.createNewSims)
+        self.w_new_sims = w_new_sims
+
+        icol += 2
         w_soil_all = QPushButton("Make soil CSV")
         helpText = 'Generate CSV data of soil carbon (Dominant) for all metrics'
         w_soil_all.setToolTip(helpText)
@@ -399,6 +410,14 @@ class Form(QWidget):
             self.w_wthr_only.setEnabled(True)
 
         self.combo10w.currentIndexChanged[str].connect(self.weatherResourceChanged)
+
+    def createNewSims(self):
+        """
+
+        """
+        calculate_grid_cell(self)
+        generate_sims(self)
+        return
 
     def checkSoilCsv(self):
         """

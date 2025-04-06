@@ -249,7 +249,8 @@ class ClimGenNC(object,):
 
         if lookup_flag:
             self.coords_lookup = coords_lookup
-            print('coords lookup file {} has {} records'.format(lookup_fn, len(coords_lookup)))
+            ncoords = len(coords_lookup['gran_coord'])
+            print('coords lookup file {} has {} records'.format(lookup_fn, ncoords))
         else:
             print(WARNING + 'no coords lookup file found - cannot proceed')
 

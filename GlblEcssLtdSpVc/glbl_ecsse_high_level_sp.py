@@ -191,7 +191,9 @@ def generate_banded_sims(form):
     """
     called from GUI
     """
-    fetch_soil_metrics(form)
+    ret_code = fetch_soil_metrics(form)
+    if ret_code is None:
+        return
 
     if form.hwsd_mu_globals is None:
         print('Undetermined HWSD aoi - please select a valid HSWD csv file')

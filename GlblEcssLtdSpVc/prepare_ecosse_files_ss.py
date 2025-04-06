@@ -159,7 +159,7 @@ def _make_met_files(clim_dir, latitude, climgen, pettmp_grid_cell):
 
     return
 
-def make_ecosse_file(form, climgen, ltd_data, site_rec, study, lta_wthr_recs, wthr_gran_coord):
+def make_ecosse_file(form, climgen, ltd_data, site_rec, study, lta_wthr_recs, wthr_gran_coord, soil_list = None):
     """
     generate sets of Ecosse files for each site
     where each site has one or more soils and each soil can have one or more dominant soils
@@ -182,11 +182,12 @@ def make_ecosse_file(form, climgen, ltd_data, site_rec, study, lta_wthr_recs, wt
     for pair in mu_globals_props.items():
         mu_global, proportion = pair
         area_for_soil = area*proportion
-        soil_list = form.hwsd_mu_globals.soil_recs[mu_global]
+        if soil_list is None:
+            soil_list = form.hwsd_mu_globals.soil_recs[mu_global]
 
         for soil_num, soil in enumerate(soil_list):
-            identifer = 'lat{0:0=7d}_lon{1:0=7d}_mu{2:0=5d}_s{3:0=2d}'.format(gran_lat,
-                                                                                gran_lon, mu_global, soil_num + 1)
+            identifer = 'lat{0:0=7d}_lon{1:0=7d}_mu{2:0=5d}_s{3:0=2d}'.format(gran_lat, gran_lon,
+                                                                              mu_global, soil_num + 1)
             sim_dir = join(sims_dir, study, identifer)
             if not lexists(sim_dir):
                 makedirs(sim_dir)

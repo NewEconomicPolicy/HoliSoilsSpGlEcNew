@@ -59,7 +59,7 @@ class Form(QWidget):
         super(Form, self).__init__(parent)
 
         self.version = 'HWSD_grid'
-        initiation(self, '_spvc')
+        initiation(self, '_consol')
         font = QFont(self.font())
         font.setPointSize(font.pointSize() + 2)
         self.setFont(font)

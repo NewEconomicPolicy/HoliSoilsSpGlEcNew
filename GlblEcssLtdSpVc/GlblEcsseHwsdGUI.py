@@ -413,7 +413,7 @@ class Form(QWidget):
 
     def createNewSims(self):
         """
-
+        C
         """
         calculate_grid_cell(self)
         generate_sims(self)
@@ -421,7 +421,7 @@ class Form(QWidget):
 
     def checkSoilCsv(self):
         """
-
+        C
         """
         fetch_soil_metrics(self)
         return
@@ -433,6 +433,7 @@ class Form(QWidget):
         make_wthr_coords_lookup(self)
 
         return
+
     def gnrtWthrClicked(self):
         """
         generate weather for all regions, scenarios and GCMs
@@ -443,7 +444,7 @@ class Form(QWidget):
 
     def changeCarbonVar(self):
         """
-
+        C
         """
         carbon_var = self.combo08.currentText()
         self.w_var_desc.setText(self.carbon_vars[carbon_var])

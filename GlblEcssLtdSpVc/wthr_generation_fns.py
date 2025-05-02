@@ -461,116 +461,116 @@ class MakeSiteObj(object,):
 
 # ==========================
 def create_wthr_averages(lggr, climgen, lat_inp, gran_coord, period, text_flag):
-        """
-        use prexisting metyyyys.txt files to generate a text file of average weather which will subsequently
-        be included in the input.txt file
-        also create a climate file which is the average of the year range
-        """
-        func_name = ' create_lta_averages'
-        full_func_name = __prog__ + func_name
+    """
+    use prexisting metyyyys.txt files to generate a text file of average weather which will subsequently
+    be included in the input.txt file
+    also create a climate file which is the average of the year range
+    """
+    func_name = ' create_lta_averages'
+    full_func_name = __prog__ + func_name
 
-        clim_dir = climgen.wthr_out_dir
-        months = climgen.months
-        output_recs = None
+    clim_dir = climgen.wthr_out_dir
+    months = climgen.months
+    output_recs = None
 
-        if period == 'historic':
-            yr_strt = climgen.hist_start_year
-            yr_end = climgen.hist_end_year
-        else:
-            yr_strt = climgen.sim_start_year
-            yr_end = climgen.sim_end_year
+    if period == 'historic':
+        yr_strt = climgen.hist_start_year
+        yr_end = climgen.hist_end_year
+    else:
+        yr_strt = climgen.sim_start_year
+        yr_end = climgen.sim_end_year
 
-        ave_text_fn = 'met{}_to_{}_ave.txt'.format(yr_strt, yr_end)
-        ave_met_fn = 'met' + str(yr_strt) + '_' + str(yr_end) + 'a.txt'
+    ave_text_fn = 'met{}_to_{}_ave.txt'.format(yr_strt, yr_end)
+    ave_met_fn = 'met' + str(yr_strt) + '_' + str(yr_end) + 'a.txt'
 
-        num_period_yrs = yr_end - yr_strt + 1
+    num_period_yrs = yr_end - yr_strt + 1
 
-        # skip if already exists
-        ave_long_text_fn = join(clim_dir, gran_coord, ave_text_fn)
-        ave_long_met_fn = join(clim_dir, gran_coord, ave_met_fn)
-        if isfile(ave_long_met_fn) and isfile(ave_long_text_fn):
-            mess = 'Files:\n\t' + ave_long_met_fn + ' and ' + ave_long_text_fn + '\n\talready exist - will overwrite'
-            lggr.info(WARN_STR + mess)
+    # skip if already exists
+    ave_long_text_fn = join(clim_dir, gran_coord, ave_text_fn)
+    ave_long_met_fn = join(clim_dir, gran_coord, ave_met_fn)
+    if isfile(ave_long_met_fn) and isfile(ave_long_text_fn):
+        mess = 'Files:\n\t' + ave_long_met_fn + ' and ' + ave_long_text_fn + '\n\talready exist - will overwrite'
+        lggr.info(WARN_STR + mess)
 
-        # read precipitation and temperature
-        sim_precip = {}
-        sim_tmean = {}
+    # read precipitation and temperature
+    sim_precip = {}
+    sim_tmean = {}
+    for month in months:
+        sim_precip[month] = 0.0
+        sim_tmean[month] = 0.0
+
+    for year in range(yr_strt, yr_end + 1):
+        fname = 'met{0}s.txt'.format(year)
+        met_fpath = join(clim_dir, gran_coord, fname)
+
+        if not isfile(met_fpath):
+            print('File ' + met_fpath + ' does not exist - will abandon average weather creation')
+            QApplication.processEvents()
+            return -1
+
+        with open(met_fpath, 'r', newline='') as fpmet:
+            lines = fpmet.readlines()
+
+        for line, month in zip(lines, months):
+            tlst = line.split('\t')
+            sim_precip[month] += float(tlst[1])
+            sim_tmean[month] += float(tlst[3].rstrip('\r\n'))
+
+    # write stanza for input.txt file consisting of long term average climate
+    # =======================================================================
+    if text_flag:
+        output_recs = []
         for month in months:
-            sim_precip[month] = 0.0
-            sim_tmean[month] = 0.0
+            ave_precip = sim_precip[month]/num_period_yrs
+            output_recs.append(_input_txt_line_layout('{}'.format(round(ave_precip, 1)),
+                                                '{} long term average monthly precipitation [mm]'.format(month)))
 
-        for year in range(yr_strt, yr_end + 1):
-            fname = 'met{0}s.txt'.format(year)
-            met_fpath = join(clim_dir, gran_coord, fname)
+        for month in months:
+            ave_tmean = sim_tmean[month]/num_period_yrs
+            output_recs.append(_input_txt_line_layout('{}'.format(round(ave_tmean, 2)),
+                                                '{} long term average monthly temperature [degC]'.format(month)))
 
-            if not isfile(met_fpath):
-                print('File ' + met_fpath + ' does not exist - will abandon average weather creation')
-                QApplication.processEvents()
-                return -1
-
-            with open(met_fpath, 'r', newline='') as fpmet:
-                lines = fpmet.readlines()
-
-            for line, month in zip(lines, months):
-                tlst = line.split('\t')
-                sim_precip[month] += float(tlst[1])
-                sim_tmean[month] += float(tlst[3].rstrip('\r\n'))
-
-        # write stanza for input.txt file consisting of long term average climate
-        # =======================================================================
-        if text_flag:
-            output_recs = []
-            for month in months:
-                ave_precip = sim_precip[month]/num_period_yrs
-                output_recs.append(_input_txt_line_layout('{}'.format(round(ave_precip, 1)),
-                                                    '{} long term average monthly precipitation [mm]'.format(month)))
-
-            for month in months:
-                ave_tmean = sim_tmean[month]/num_period_yrs
-                output_recs.append(_input_txt_line_layout('{}'.format(round(ave_tmean, 2)),
-                                                    '{} long term average monthly temperature [degC]'.format(month)))
-
-            # write text file of average simulated weather which will subsequently be included in the input.txt file
-            # ======================================================================================================
-            try:
-                fhand = open(ave_long_text_fn, 'w')
-            except IOError:
-                raise IOError(ERROR_STR + 'Unable to open file: ' + ave_text_fn)
-            else:
-                fhand.writelines(output_recs)
-                fhand.close()
-
-            lggr.info('Successfully wrote average weather file {} in function {}'.format(ave_text_fn, func_name))
-
-        # write long term average climate file
-        # ====================================
-        ave_precip = [round(sim_precip[month]/num_period_yrs, 1) for month in months]
-        ave_tmean = [round(sim_tmean[month]/num_period_yrs, 1) for month in months]
-
-        # pet
-        if max(ave_tmean) > 0.0:
-            pet = thornthwaite(ave_tmean, lat_inp, year)
+        # write text file of average simulated weather which will subsequently be included in the input.txt file
+        # ======================================================================================================
+        try:
+            fhand = open(ave_long_text_fn, 'w')
+        except IOError:
+            raise IOError(ERROR_STR + 'Unable to open file: ' + ave_text_fn)
         else:
-            pet = [0.0]*12
-            mess = WARN_STR + 'monthly average temperatures are below zero in ' + full_func_name
-            mess += ' for latitude: {}\tgranular coord: {}'.format(lat_inp, gran_coord)
-            print(mess)
+            fhand.writelines(output_recs)
+            fhand.close()
 
-        pot_evapotrans = [round(p, 1) for p in pet]
+        lggr.info('Successfully wrote average weather file {} in function {}'.format(ave_text_fn, func_name))
 
-        # write file
-        output = []
-        for tstep, mean_temp in enumerate(ave_tmean):
-            output.append([tstep+1, ave_precip[tstep], pot_evapotrans[tstep], mean_temp])
+    # write long term average climate file
+    # ====================================
+    ave_precip = [round(sim_precip[month]/num_period_yrs, 1) for month in months]
+    ave_tmean = [round(sim_tmean[month]/num_period_yrs, 1) for month in months]
 
-        with open(ave_long_met_fn, 'w', newline='') as fpout:
-            writer = csv.writer(fpout, delimiter='\t')
-            writer.writerows(output)
-            fpout.close()
+    # pet
+    if max(ave_tmean) > 0.0:
+        pet = thornthwaite(ave_tmean, lat_inp, year)
+    else:
+        pet = [0.0]*12
+        mess = WARN_STR + 'monthly average temperatures are below zero in ' + full_func_name
+        mess += ' for latitude: {}\tgranular coord: {}'.format(lat_inp, gran_coord)
+        print(mess)
 
-        lggr.info('Successfully wrote average weather file {} in function {}'.format(ave_met_fn, func_name))
+    pot_evapotrans = [round(p, 1) for p in pet]
 
-        return output_recs
+    # write file
+    output = []
+    for tstep, mean_temp in enumerate(ave_tmean):
+        output.append([tstep+1, ave_precip[tstep], pot_evapotrans[tstep], mean_temp])
+
+    with open(ave_long_met_fn, 'w', newline='') as fpout:
+        writer = csv.writer(fpout, delimiter='\t')
+        writer.writerows(output)
+        fpout.close()
+
+    lggr.info('Successfully wrote average weather file {} in function {}'.format(ave_met_fn, func_name))
+
+    return output_recs
 
 def _input_txt_line_layout(data, comment):
     """

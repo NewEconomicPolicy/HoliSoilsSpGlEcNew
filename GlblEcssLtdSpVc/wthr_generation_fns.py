@@ -255,13 +255,17 @@ def make_wthr_files(site, lat, gran_coord, climgen, pettmp_hist, pettmp_all):
     if pettmp_hist is None:
         return
 
+    gran_lon = gran_coord.split('_')[1]
+    lon = (int(gran_lon) / GRANULARITY) - 180.0
+    mess = 'granular coord {} with lat/lon: {} {}\t'.format(gran_coord, lat, lon)
+
     if gran_coord not in pettmp_hist['precipitation']:
-        print(WARN_STR + 'granular coordinate {} with lat: {}\tnot in historic weather'.format(gran_coord, lat))
+        print(WARN_STR + mess + 'not in historic weather')
         QApplication.processEvents()
         return
 
     if gran_coord not in pettmp_all['precipitation']:
-        print(WARN_STR + 'granular coordinate {} with lat: {}\tnot in simulation weather'.format(gran_coord, lat))
+        print(WARN_STR + + mess + 'not in simulation weather')
         QApplication.processEvents()
         return
 

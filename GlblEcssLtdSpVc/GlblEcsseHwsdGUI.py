@@ -27,7 +27,6 @@ from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell, grid_resolutions, glbl
 
 from glbl_ecsse_high_level_sp import generate_banded_sims
 from glec_new_high_level_sp import generate_sims
-from generate_soil_vars_grid import generate_soil_outputs
 from generate_soil_vars_nc import make_soil_nc_outputs
 from write_soil_vars_grid import generate_all_soil_metrics
 from glbl_ecsse_low_level_fns_sv import fetch_soil_metrics
@@ -247,30 +246,56 @@ class Form(QWidget):
         grid.addWidget(w_run_ecosse, irow, 2)
         self.w_run_ecosse = w_run_ecosse
 
-        w_save = QPushButton("Save")
-        helpText = 'Save configuration and study definition files'
-        w_save.setToolTip(helpText)
-        w_save.setFixedWidth(STD_BTN_SIZE_80)
-        grid.addWidget(w_save, irow, 3)
-        w_save.clicked.connect(self.saveClicked)
-
-        w_cancel = QPushButton("Cancel")
-        helpText = 'Leaves GUI without saving configuration and study definition files'
-        w_cancel.setToolTip(helpText)
-        w_cancel.setFixedWidth(STD_BTN_SIZE_80)
-        grid.addWidget(w_cancel, irow, 4)
-        w_cancel.clicked.connect(self.cancelClicked)
-
-        w_exit = QPushButton("Exit", self)
-        grid.addWidget(w_exit, irow, 5)
-        w_exit.setFixedWidth(STD_BTN_SIZE_80)
-        w_exit.clicked.connect(self.exitClicked)
-
         # =============================================
         irow += 1
         irow = glblecss_limit_sims(self, grid, irow)
 
         # ================= row 3 ============================
+        irow += 1
+        icol = 1
+
+        w_del_sims = QPushButton("Del sims")
+        helpText = 'Remove all simulation files for this study'
+        w_del_sims.setToolTip(helpText)
+        w_del_sims.setFixedWidth(STD_BTN_SIZE_80)
+        w_del_sims.setEnabled(False)
+        grid.addWidget(w_del_sims, irow, icol)
+        w_del_sims.clicked.connect(self.cleanSimsClicked)
+
+        icol += 1
+        w_clear = QPushButton("Clear window", self)
+        helpText = 'Clear reporting window'
+        w_clear.setToolTip(helpText)
+        w_clear.setFixedWidth(STD_BTN_SIZE_120)
+        w_clear.clicked.connect(self.clearReporting)
+        grid.addWidget(w_clear, irow, icol)
+
+        icol += 1
+        w_save = QPushButton("Save")
+        helpText = 'Save configuration and study definition files'
+        w_save.setToolTip(helpText)
+        w_save.setFixedWidth(STD_BTN_SIZE_80)
+        grid.addWidget(w_save, irow, icol)
+        w_save.clicked.connect(self.saveClicked)
+
+        icol += 1
+        w_cancel = QPushButton("Cancel")
+        helpText = 'Leaves GUI without saving configuration and study definition files'
+        w_cancel.setToolTip(helpText)
+        w_cancel.setFixedWidth(STD_BTN_SIZE_80)
+        grid.addWidget(w_cancel, irow, icol)
+        w_cancel.clicked.connect(self.cancelClicked)
+
+        icol += 1
+        w_exit = QPushButton("Exit", self)
+        grid.addWidget(w_exit, irow, icol)
+        w_exit.setFixedWidth(STD_BTN_SIZE_80)
+        w_exit.clicked.connect(self.exitClicked)
+
+        irow += 1
+        grid.addWidget(QLabel(''), irow, 2)  # spacer
+
+        # ================= row 6 ============================
         irow += 1
         icol = 0
         w_wthr_only = QPushButton('Create weather')
@@ -278,6 +303,7 @@ class Form(QWidget):
         w_wthr_only.setToolTip(helpText)
         w_wthr_only.setEnabled(True)
         grid.addWidget(w_wthr_only, irow, icol)
+        w_wthr_only.setFixedWidth(STD_BTN_SIZE_120)
         w_wthr_only.clicked.connect(self.gnrtWthrClicked)
         self.w_wthr_only = w_wthr_only
 
@@ -291,13 +317,22 @@ class Form(QWidget):
         self.w_wthr_lookup = w_wthr_lookup
 
         icol += 1
-        w_soil_outpts = QPushButton("Make soil files")
-        helpText = 'Generate CSV data of soil carbon (Dominant), pH and bulk density for the HoliSoils project'
-        w_soil_outpts.setToolTip(helpText)
-        w_soil_outpts.setFixedWidth(STD_BTN_SIZE_120)
-        grid.addWidget(w_soil_outpts, irow, icol)
-        w_soil_outpts.clicked.connect(self.genSoilOutptsClicked)
-        self.w_soil_outpts = w_soil_outpts
+        w_soil_all = QPushButton("Make soil CSV")
+        helpText = 'Generate CSV data of soil carbon (Dominant) for all metrics'
+        w_soil_all.setToolTip(helpText)
+        w_soil_all.setFixedWidth(STD_BTN_SIZE_120)
+        grid.addWidget(w_soil_all, irow, icol)
+        w_soil_all.clicked.connect(lambda: self.genSoilOutptsClicked(True))
+        self.w_soil_all = w_soil_all
+
+        icol += 1
+        w_check_soil = QPushButton("Check soil CSV")
+        helpText = 'Generate CSV data of soil carbon (Dominant) for all metrics'
+        w_check_soil.setToolTip(helpText)
+        w_check_soil.setFixedWidth(STD_BTN_SIZE_120)
+        grid.addWidget(w_check_soil, irow, icol)
+        w_check_soil.clicked.connect(self.checkSoilCsv)
+        self.w_check_soil = w_check_soil
 
         icol += 1
         w_soil_nc = QPushButton("Make soil NC")
@@ -309,51 +344,14 @@ class Form(QWidget):
         self.w_soil_nc = w_soil_nc
 
         icol += 1
-        w_clear = QPushButton("Del sims")
-        helpText = 'Remove all simulation files for this study'
-        w_clear.setToolTip(helpText)
-        w_clear.setFixedWidth(STD_BTN_SIZE_80)
-        w_clear.setEnabled(False)
-        grid.addWidget(w_clear, irow, icol)
-        w_clear.clicked.connect(self.cleanSimsClicked)
-
-        icol += 1
-        w_clear = QPushButton("Clear window", self)
-        helpText = 'Clear reporting window'
-        w_clear.setToolTip(helpText)
-        w_clear.setFixedWidth(STD_BTN_SIZE_120)
-        w_clear.clicked.connect(self.clearReporting)
-        grid.addWidget(w_clear, irow, icol)
-
-        # ================= row 4 ============================
-        irow += 1
-        icol = 0
         w_new_sims = QPushButton("Create new sims")
         helpText = 'Generate ECOSSE simulation file sets corresponding to ordered HWSD global mapping unit set in CSV file'
         w_new_sims.setToolTip(helpText)
         # w_new_sims.setEnabled(False)
         w_new_sims.setFixedWidth(STD_BTN_SIZE_120)
-        grid.addWidget(w_new_sims, irow, 0, )
+        grid.addWidget(w_new_sims, irow, icol)
         w_new_sims.clicked.connect(self.createNewSims)
         self.w_new_sims = w_new_sims
-
-        icol += 2
-        w_soil_all = QPushButton("Make soil CSV")
-        helpText = 'Generate CSV data of soil carbon (Dominant) for all metrics'
-        w_soil_all.setToolTip(helpText)
-        w_soil_all.setFixedWidth(STD_BTN_SIZE_120)
-        grid.addWidget(w_soil_all, irow, icol)
-        w_soil_all.clicked.connect(lambda: self.genSoilOutptsClicked(True))
-        self.w_soil_all = w_soil_all
-
-        icol += 2
-        w_check_soil = QPushButton("Check soil CSV")
-        helpText = 'Generate CSV data of soil carbon (Dominant) for all metrics'
-        w_check_soil.setToolTip(helpText)
-        w_check_soil.setFixedWidth(STD_BTN_SIZE_120)
-        grid.addWidget(w_check_soil, irow, icol)
-        w_check_soil.clicked.connect(self.checkSoilCsv)
-        self.w_check_soil = w_check_soil
 
         # LH vertical box consists of png image
         # =====================================
@@ -504,8 +502,6 @@ class Form(QWidget):
         """
         if all_metrics_flag:
             generate_all_soil_metrics(self)
-        else:
-            generate_soil_outputs(self)
 
     def genSoilNcClicked(self):
         """

@@ -25,7 +25,6 @@ from PyQt5.QtWidgets import (QLabel, QWidget, QApplication, QHBoxLayout, QVBoxLa
 from common_componentsGUI import (exit_clicked, commonSection, changeConfigFile, studyTextChanged, save_clicked)
 from glbl_ecss_cmmn_cmpntsGUI import calculate_grid_cell, grid_resolutions, glblecss_limit_sims
 
-from glbl_ecsse_high_level_sp import generate_banded_sims
 from glec_new_high_level_sp import generate_sims
 from generate_soil_vars_nc import make_soil_nc_outputs
 from write_soil_vars_grid import generate_all_soil_metrics
@@ -343,16 +342,6 @@ class Form(QWidget):
         w_soil_nc.clicked.connect(self.genSoilNcClicked)
         self.w_soil_nc = w_soil_nc
 
-        icol += 1
-        w_new_sims = QPushButton("Create new sims")
-        helpText = 'Generate ECOSSE simulation file sets corresponding to ordered HWSD global mapping unit set in CSV file'
-        w_new_sims.setToolTip(helpText)
-        # w_new_sims.setEnabled(False)
-        w_new_sims.setFixedWidth(STD_BTN_SIZE_120)
-        grid.addWidget(w_new_sims, irow, icol)
-        w_new_sims.clicked.connect(self.createNewSims)
-        self.w_new_sims = w_new_sims
-
         # LH vertical box consists of png image
         # =====================================
         lh_vbox = QVBoxLayout()
@@ -409,14 +398,7 @@ class Form(QWidget):
 
         self.combo10w.currentIndexChanged[str].connect(self.weatherResourceChanged)
 
-    def createNewSims(self):
-        """
-        C
-        """
-        calculate_grid_cell(self)
-        generate_sims(self)
-        return
-
+# ===============================
     def checkSoilCsv(self):
         """
         C
@@ -582,7 +564,8 @@ class Form(QWidget):
 
         self.study = study
 
-        generate_banded_sims(self)
+        calculate_grid_cell(self)
+        generate_sims(self)
 
         # run further steps...
         if self.w_auto_spec.isChecked():

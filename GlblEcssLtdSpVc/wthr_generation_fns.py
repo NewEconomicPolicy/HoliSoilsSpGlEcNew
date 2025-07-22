@@ -265,7 +265,7 @@ def make_wthr_files(site, lat, gran_coord, climgen, pettmp_hist, pettmp_all):
         return
 
     if gran_coord not in pettmp_all['precipitation']:
-        print(WARN_STR + + mess + 'not in simulation weather')
+        print(WARN_STR + mess + 'not in simulation weather')
         QApplication.processEvents()
         return
 

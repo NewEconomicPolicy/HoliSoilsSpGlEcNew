@@ -480,14 +480,14 @@ class Form(QWidget):
 
     def genSoilOutptsClicked(self, all_metrics_flag=False):
         """
-
+        C
         """
         if all_metrics_flag:
             generate_all_soil_metrics(self)
 
     def genSoilNcClicked(self):
         """
-
+        C
         """
         make_soil_nc_outputs(self)
 
